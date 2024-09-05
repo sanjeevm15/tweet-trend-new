@@ -15,3 +15,5 @@ environment {
                  echo "----------- build complted ----------"
             }
         }
+     }
+   }  
