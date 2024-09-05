@@ -1,23 +1,22 @@
 pipeline {
     agent {
-        node{
-          label 'maven'  
-        } 
+        node {
+            label 'maven'
+        }
     }
 
     stages {
         stage("code-clone") {
-	    steps {
-	       git branch: 'main', url: 'https://github.com/sanjeevm15/tweet-trend-new.git'
+            steps {
+                git branch: 'main', url: 'https://github.com/sanjeevm15/tweet-trend-new.git'
             }
+        }
 
-    stages {
         stage("Build") {
             steps {
-               sh 'mvn clean deploy'
+                sh 'mvn clean deploy'
             }
         }
     }
 }
-
 
