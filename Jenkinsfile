@@ -1,4 +1,6 @@
 def registry = 'https://sanjeev14.jfrog.io'
+def imageName = 'valaxy05.jfrog.io/demorepo-docker-local/ttrend'
+def version = '2.1.2'
 pipeline {
     agent {
         node {
@@ -17,7 +19,7 @@ environment {
         stage("build"){
             steps {
                  echo "----------- build started ----------"
-                sh 'mvn clean deploy -Dmaven.test.skip=true'
+                 sh 'mvn clean deploy -Dmaven.test.skip=true'
                  echo "----------- build complted ----------"
             }
         }
@@ -47,9 +49,30 @@ environment {
             }
         }
     }
-   }
 
-  }
+    stage(" Docker Build ") {
+    steps {
+     script {
+         echo '<- Docker Build Started -->'
+         app = docker.build(imageName+": "+version)
+          echo '<-Docker Build Ends ->'
+     } 
+    }
+    }
+ 
+     stage ("Docker Publish "){
+      steps {
+      script {
+       echo '<- Docker Publish Started ->'
+       docker.withRegistry (registry, 'artifactory_token') {
+       app.push()
+       echo '<- Docker Publish Ended ->'
+      }
+     }
+    }
+   }      
+ }
+}
 
     
      
