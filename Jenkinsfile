@@ -80,7 +80,12 @@ pipeline {
         stage("Deploy") {
             steps {
                 script {
-                    sh './deploy.sh'
+                  echo '<- Deploy Started ->'
+            // Ensure the deploy.sh script is executable
+            sh 'chmod +x ./deploy.sh'
+            // Execute the deploy.sh script
+            sh './deploy.sh'
+            echo '<- Deploy Ended ->'
                 }
             }
         }
