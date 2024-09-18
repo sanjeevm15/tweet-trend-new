@@ -1,6 +1,7 @@
 def registry = 'https://sanjeev14.jfrog.io'
 def imageName = 'sanjeev14.jfrog.io/demorepo-docker-local/ttrend'
 def version = '2.1.2'
+
 pipeline {
     agent {
         node {
@@ -9,74 +10,75 @@ pipeline {
     }
 
     tools {
-        maven 'Maven 3.9.9'  // This is the name you provided for the Maven installation
+        maven 'Maven 3.9.9'  // Ensure this name matches the Maven installation in Jenkins
     }
 
-environment {
-    PATH = "/opt/apache-maven-3.9.2/bin:$PATH"
-}
+    environment {
+        PATH = "/opt/apache-maven-3.9.2/bin:$PATH"
+    }
+
     stages {
-        stage("build"){
+        stage("Build") {
             steps {
-                 echo "----------- build started ----------"
-                 sh 'mvn clean deploy -Dmaven.test.skip=true'
-                 echo "----------- build complted ----------"
+                echo "----------- Build Started ----------"
+                sh 'mvn clean deploy -Dmaven.test.skip=true'
+                echo "----------- Build Completed ----------"
             }
         }
 
-	 stage("Jar Publish") {
-        steps {
-            script {
+        stage("Jar Publish") {
+            steps {
+                script {
                     echo '<--------------- Jar Publish Started --------------->'
-                     def server = Artifactory.newServer url:registry+"/artifactory" ,  credentialsId:"Jfrogartifact-cred"
-                     def properties = "buildid=${env.BUILD_ID},commitid=${GIT_COMMIT}";
-                     def uploadSpec = """{
-                          "files": [
+                    def server = Artifactory.newServer url: registry + "/artifactory", credentialsId: "Jfrogartifact-cred"
+                    def properties = "buildid=${env.BUILD_ID},commitid=${GIT_COMMIT}"
+                    def uploadSpec = """{
+                        "files": [
                             {
-                              "pattern": "jarstaging/(*)",
-                              "target": "maven-libs-release-local/{1}",
-                              "flat": "false",
-                              "props" : "${properties}",
-                              "exclusions": [ "*.sha1", "*.md5"]
+                                "pattern": "jarstaging/*",
+                                "target": "maven-libs-release-local/",
+                                "flat": false,
+                                "props": "${properties}",
+                                "exclusions": [ "*.sha1", "*.md5" ]
                             }
-                         ]
-                     }"""
-                     def buildInfo = server.upload(uploadSpec)
-                     buildInfo.env.collect()
-                     server.publishBuildInfo(buildInfo)
-                     echo '<--------------- Jar Publish Ended --------------->'
+                        ]
+                    }"""
+                    def buildInfo = server.upload(uploadSpec)
+                    buildInfo.env.collect()
+                    server.publishBuildInfo(buildInfo)
+                    echo '<--------------- Jar Publish Ended --------------->'
+                }
+            }
+        }
 
+        stage("Docker Build") {
+            steps {
+                script {
+                    echo '<- Docker Build Started -->'
+                    def app = docker.build("${imageName}:${version}")
+                    echo '<- Docker Build Ended ->'
+                }
+            }
+        }
+
+        stage("Docker Publish") {
+            steps {
+                script {
+                    echo '<- Docker Publish Started ->'
+                    docker.withRegistry(registry, 'Jfrogartifact-cred') {
+                        app.push()
+                    }
+                    echo '<- Docker Publish Ended ->'
+                }
+            }
+        }
+
+        stage("Deploy") {
+            steps {
+                script {
+                    sh './deploy.sh'
+                }
             }
         }
     }
-
-    stage(" Docker Build ") {
-    steps {
-     script {
-         echo '<- Docker Build Started -->'
-         app = docker.build(imageName+ ":" +version)
-          echo '<-Docker Build Ends ->'
-     } 
-    }
-    }
- 
-     stage ("Docker Publish "){       
-      steps {
-      script {
-       echo '<- Docker Publish Started ->'
-       docker.withRegistry (registry, 'Jfrogartifact-cred') {
-       app.push()
-       echo '<- Docker Publish Ended ->'
-      }
-     }
-    }
-   }
-     stage{
-        steps{
-            script{
-                sh './deploy.sh'
-            }
-        }
-     }
- }
 }
