@@ -14,7 +14,7 @@ spec:
         app:  demo-rtp
     spec:
       imagePullSecrets:
-      - name: jfrogartifact-cred
+      - name: Jfrogartifact-cred
       containers:
       - name: demo-rtp
         image: sanjeev14.jfrog.io/demorepo-docker-local/ttrend:2.1.2
