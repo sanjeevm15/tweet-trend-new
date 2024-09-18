@@ -51,27 +51,31 @@ pipeline {
             }
         }
 
-        stage("Docker Build") {
-            steps {
-                script {
-                    echo '<- Docker Build Started -->'
-                    def app = docker.build("${imageName}:${version}")
-                    echo '<- Docker Build Ended ->'
-                }
-            }
+     stage("Docker Build") {
+       steps {
+         script {
+            echo '<- Docker Build Started ->'
+            // Build the Docker image and assign it to the 'app' variable
+            app = docker.build(imageName + ":" + version)
+            echo '<- Docker Build Ended ->'
         }
+    }
+}
 
-        stage("Docker Publish") {
-            steps {
-                script {
-                    echo '<- Docker Publish Started ->'
-                    docker.withRegistry(registry, 'Jfrogartifact-cred') {
-                        app.push()
-                    }
-                    echo '<- Docker Publish Ended ->'
-                }
+     stage("Docker Publish") {
+       steps {
+        script {
+            echo '<- Docker Publish Started ->'
+            // Use the 'app' variable to push the Docker image
+            docker.withRegistry(registry, 'Jfrogartifact-cred') {
+                app.push()
             }
+            echo '<- Docker Publish Ended ->'
         }
+    }
+}
+
+
 
         stage("Deploy") {
             steps {
