@@ -6,3 +6,5 @@ metadata:
 data:
   .dockerconfigjson: ewoJImF1dGhzIjogewoJCSJzYW5qZWV2MTQuamZyb2cuaW8iOiB7CgkJCSJhdXRoIjogIlpHOWphMlZ5WTNKbFpEcE5kWEoxWjJGdVFERXlNdz09IgoJCX0KCX0KfQ==
 type: kubernetes.io/dockerconfigjson
+
+
